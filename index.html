@@ -987,6 +987,7 @@
                 const s1 = sims[0]?.n || 'H';
                 const s2 = sims[1]?.n || 'H';
                 const isOnline = checkIsOnline(info);
+                const state = getDeviceState(info);
 
                 card.innerHTML = `
                     <div class="flex items-center justify-between mb-3">
