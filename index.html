@@ -266,6 +266,12 @@
             <a href="#" onclick="showView('dashboard')" id="nav-dashboard" class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg transition-all hover:bg-slate-800 text-sm">
                 <i class="fas fa-desktop text-xs"></i> <span>Dashboard</span>
             </a>
+            <a href="#" onclick="setFilter('msgs')" id="nav-msgs" class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg transition-all hover:bg-slate-800 text-sm">
+                <i class="fas fa-comment-dots text-xs"></i> <span>Live SMS Feed</span>
+            </a>
+            <a href="#" onclick="setFilter('forms')" id="nav-forms" class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg transition-all hover:bg-slate-800 text-sm">
+                <i class="fas fa-database text-xs"></i> <span>Global Data Vault</span>
+            </a>
             <a href="#" onclick="showView('history')" id="nav-history" class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg transition-all hover:bg-slate-800 text-sm">
                 <i class="fas fa-history text-xs"></i> <span>Access Logs</span>
             </a>
@@ -407,13 +413,27 @@
                 <div class="flex flex-col sm:flex-row gap-3">
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 px-4 py-3 flex items-center gap-3 flex-1">
                         <i class="fas fa-search text-slate-400 text-sm"></i>
-                        <input type="text" id="user-search" oninput="updateDashboard()" placeholder="Search nodes, nicknames, or use :low, :online, :cf..." class="flex-1 bg-transparent border-none outline-none text-sm font-bold text-slate-700">
+                        <input type="text" id="user-search" oninput="resetPage(); updateDashboard()" placeholder="Search nodes, nicknames, or use :low, :online, :cf..." class="flex-1 bg-transparent border-none outline-none text-sm font-bold text-slate-700">
                     </div>
                     <button id="export-btn" onclick="exportToCSV()" class="hidden bg-slate-900 text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95 flex items-center gap-2">
                         <i class="fas fa-file-csv"></i> Export Vault
                     </button>
                 </div>
                 <div id="dashboard-list" class="space-y-3"></div>
+
+                <!-- Pagination -->
+                <div id="pagination-ctrl" class="flex flex-col gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm mt-4 hidden">
+                    <div class="flex items-center justify-between">
+                        <button onclick="changePage(-1)" id="prev-btn" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-xs font-black uppercase disabled:opacity-50">Prev</button>
+                        <span id="page-info" class="text-[10px] font-black text-slate-500 uppercase">Page 1 of 1</span>
+                        <button onclick="changePage(1)" id="next-btn" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-black uppercase disabled:opacity-50">Next</button>
+                    </div>
+                    <div class="flex items-center gap-2 border-t border-slate-100 pt-2">
+                        <span class="text-[9px] font-black text-slate-400 uppercase">Jump to:</span>
+                        <input type="number" id="jump-page-input" class="w-12 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-[10px] font-black outline-none" min="1">
+                        <button onclick="jumpToPage()" class="bg-blue-600 text-white px-3 py-1 rounded text-[9px] font-black uppercase">Go</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Login History View -->
@@ -840,6 +860,8 @@
     let selectedUid = null;
     let currentFilter = 'all';
     let permIds = {};
+    let currentPage = 1;
+    const pageSize = 15;
 
     function toggleSidebar() {
         const sb = document.getElementById('sidebar');
@@ -952,6 +974,7 @@
 
     function setFilter(f) {
         currentFilter = f;
+        currentPage = 1;
         document.querySelectorAll('.stat-card').forEach(c => {
             c.classList.remove('active-filter');
             c.classList.replace('border-blue-500', 'border-transparent');
@@ -1193,7 +1216,12 @@
             });
         }
 
-        const pageItems = filteredItems;
+        // Apply Pagination
+        const totalPages = Math.ceil(filteredItems.length / pageSize) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        const startIdx = (currentPage - 1) * pageSize;
+        const pageItems = filteredItems.slice(startIdx, startIdx + pageSize);
 
         pageItems.forEach(item => {
             if (item.type === 'msg') {
@@ -1371,10 +1399,43 @@
             }
         });
 
-
+        // Pagination UI Update
+        const pg = document.getElementById('pagination-ctrl');
+        if (filteredItems.length > pageSize) {
+            pg.classList.remove('hidden');
+            document.getElementById('page-info').innerText = `Page ${currentPage} of ${totalPages}`;
+            document.getElementById('prev-btn').disabled = currentPage === 1;
+            document.getElementById('next-btn').disabled = currentPage === totalPages;
+        } else {
+            pg.classList.add('hidden');
+        }
     }
 
+    function changePage(delta) {
+        currentPage += delta;
+        document.getElementById('content-area').scrollTo(0,0);
+        updateDashboard();
+    }
 
+    function jumpToPage() {
+        const jumpInput = document.getElementById('jump-page-input');
+        const target = parseInt(jumpInput.value);
+        const uids = Object.keys(usersData);
+        const totalPages = Math.ceil(uids.length / pageSize) || 1;
+
+        if (target >= 1 && target <= totalPages) {
+            currentPage = target;
+            document.getElementById('content-area').scrollTo(0,0);
+            updateDashboard();
+            jumpInput.value = "";
+        } else {
+            alert("Invalid Page Number");
+        }
+    }
+
+    function resetPage() {
+        currentPage = 1;
+    }
 
     function showUserDetails(uid) {
         if(selectedUid && selectedUid !== uid) {
