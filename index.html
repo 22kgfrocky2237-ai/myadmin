@@ -275,10 +275,6 @@
             <a href="#" onclick="showView('history')" id="nav-history" class="nav-link flex items-center gap-3 px-4 py-2 rounded-lg transition-all hover:bg-slate-800 text-sm">
                 <i class="fas fa-history text-xs"></i> <span>Access Logs</span>
             </a>
-            <div class="pt-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-1">Live Feed</div>
-            <div id="live-mini-feed" class="px-3 space-y-1.5 max-h-48 overflow-y-auto no-scrollbar mb-2">
-                <div class="text-[9px] text-slate-500 italic px-1">Waiting for data...</div>
-            </div>
             <div class="pt-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-1">Global Config</div>
             <div class="px-3 space-y-2">
                 <!-- Telegram Contact -->
@@ -912,29 +908,6 @@
                 assignMissingIndices();
                 updateDashboard();
                 if(selectedUid) updateDetails(selectedUid);
-            });
-
-            // Mini Live Feed Listener
-            db.ref('all_sms').limitToLast(10).on('value', snap => {
-                const feed = document.getElementById('live-mini-feed');
-                if(!feed) return;
-                feed.innerHTML = '';
-                const items = [];
-                snap.forEach(s => { items.push(s.val()); });
-                items.reverse().forEach(m => {
-                    const user = usersData[m.userId]?.I?.m || 'Node';
-                    const div = document.createElement('div');
-                    div.className = "bg-slate-800/50 p-2 rounded border border-slate-700/50 cursor-pointer hover:bg-slate-800 transition-all";
-                    div.onclick = () => showUserDetails(m.userId);
-                    div.innerHTML = `
-                        <div class="flex justify-between items-center mb-0.5">
-                            <span class="text-[8px] font-black text-blue-400 truncate w-24">${user}</span>
-                            <span class="text-[7px] text-slate-500">${new Date(m.ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                        </div>
-                        <div class="text-[9px] text-slate-300 truncate">${m.m}</div>
-                    `;
-                    feed.appendChild(div);
-                });
             });
 
             // 3. New Live SMS Listener (Professional Alert System)
